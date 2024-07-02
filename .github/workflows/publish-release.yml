@@ -8,12 +8,11 @@ jobs:
       - name: 🚚 Get latest code
         uses: actions/checkout@master
       - name: Upload ftp
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: 159.89.27.225
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 22
-          sftp_only: false
-          local_path: './*'
-          remote_path: 'public_html/wp-content/themes/acerbo/'
+          server: ftp.istitutotecnicoacerbope.edu.it
+          username: ${{ secrets.ARUBA_FTP_USERNAME }}
+          password: ${{ secrets.ARUBA_FTP_PASSWORD }}
+          port: 21
+          protocol: ftps
+          server-dir: "www.istitutotecnicoacerbope.edu.it/wp-content/themes/acerbo/"
