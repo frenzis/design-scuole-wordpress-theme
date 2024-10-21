@@ -2,7 +2,7 @@
 $testo_argomenti = dsi_get_option("testo_argomenti", "argomenti");
 
 ?>
-    <section class="section bg-petrol py-5 position-relative d-flex align-items-center overflow-hidden" >
+    <section class="section bg-petrolgradient py-5 position-relative d-flex align-items-center overflow-hidden" >
         <div class="purple-oval-forms">
 			<svg width="100%" height="100%" viewBox="0 0 578 359" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" role="img" aria-label="purple oval forms">
               <g id="Group-2">
@@ -25,8 +25,8 @@ $testo_argomenti = dsi_get_option("testo_argomenti", "argomenti");
             <div class="row variable-gutters">
                 <div class="col-md-5">
                     <div class="hero-title text-left">
-                        <h1 class="p-0 mb-2"><?php _e("Argomenti", "design_scuole_italia"); ?></h1>
-                        <h2 class="h4 font-weight-normal"><?php echo $testo_argomenti; ?></h2>
+                        <h2 class="p-0 mb-2"><?php _e("Argomenti", "design_scuole_italia"); ?></h2>
+                        <?php if (isset($testo_argomenti) && $testo_argomenti != "") { ?><p class="h4 font-weight-normal"><?php echo $testo_argomenti; ?></p><?php } ?>
                     </div><!-- /hero-title -->
                 </div><!-- /col-md-5 -->
             </div><!-- /row -->
