@@ -342,13 +342,16 @@ add_filter( 'breadcrumb_trail', 'breadcrumb_fix', 10, 3);
 // Verifica se l'utente è abilitato a vedere il contenuto della circolare
 function circolare_access($post_ID) {
 
-$is_pubblica = dsi_get_meta("is_pubblica");
+// SECURITY FIX (VULN-03): pass $post_ID explicitly to all dsi_get_meta() calls
+// so that access is evaluated against the requested post, not the global $post.
+$is_pubblica = dsi_get_meta("is_pubblica", "", $post_ID);
 $destinatari_circolari = "";
-$destinatari_circolari =  dsi_get_meta("destinatari_circolari");
+$destinatari_circolari =  dsi_get_meta("destinatari_circolari", "", $post_ID);
 $user = wp_get_current_user();
 $current_user_roles = (array) $user->roles;
+$can_view = "false";
 if($destinatari_circolari == "ruolo"){
-	$allowed_roles = dsi_get_meta("ruoli_circolari"); 
+	$allowed_roles = dsi_get_meta("ruoli_circolari", "", $post_ID);
 	
 	if ($allowed_roles) {
 		$c = array_intersect($allowed_roles,$current_user_roles);
@@ -366,7 +369,7 @@ if($destinatari_circolari == "ruolo"){
 if($destinatari_circolari == "gruppo"){
 	$users = array();
 	
-	$gruppi_circolari = dsi_get_meta("gruppi_circolari");
+	$gruppi_circolari = dsi_get_meta("gruppi_circolari", "", $post_ID);
 	
 	$users = get_objects_in_term( $gruppi_circolari, "gruppo-utente" );
 	if (in_array($user->ID,$users )) {
@@ -418,46 +421,55 @@ add_filter('attachment_fields_to_save', 'save_protect_from_public_access_attachm
 
 function reserved_file_check(){
 	if($_GET && isset($_GET['action']) && $_GET['action'] == "reservedfilecheck"){
-		$baseurl = wp_get_upload_dir()['baseurl'];
-		$basedir = wp_get_upload_dir()['basedir'];
-		$filename = $baseurl . '/' . $_GET['file'];
+		$upload   = wp_get_upload_dir();
+		$baseurl  = $upload['baseurl'];
+		$basedir  = $upload['basedir'];
 		$filepath = $basedir . '/' . $_GET['file'];
 
-		$fileid = attachment_url_to_postid( $filename );
+		$realbasedir = realpath( $basedir );
+		$realpath    = realpath( $filepath );
 
-		if($fileid != 0) {
-			$filedata = get_post($fileid);
-
-			$protect_from_public_access = (bool) get_post_meta($filedata->ID, 'protect_from_public_access', true);
-
-			if($protect_from_public_access && !is_user_logged_in()) 
-				die();
+		if ( $realpath === false || $realbasedir === false ||
+		     strncmp( $realpath, $realbasedir . DIRECTORY_SEPARATOR, strlen( $realbasedir ) + 1 ) !== 0 ) {
+			wp_die( '', '', [ 'response' => 404 ] );
 		}
 
-		if(file_exists($filepath)) {			
-			//Define header information
-			header('Content-Description: File Transfer');
-			header('Content-Type: application/octet-stream');
-			header("Cache-Control: no-cache, must-revalidate");
-			header("Expires: 0");
-			header('Content-Disposition: attachment; filename="'.basename($filepath).'"');
-			header('Content-Length: ' . filesize($filepath));
-			header('Pragma: public');
+		$relative = substr( $realpath, strlen( $realbasedir ) + 1 );
+		$filename = $baseurl . '/' . $relative;
+		$fileid   = attachment_url_to_postid( $filename );
 
+		if ( $fileid != 0 ) {
+			$filedata = get_post( $fileid );
+
+			$protect_from_public_access = (bool) get_post_meta( $filedata->ID, 'protect_from_public_access', true );
+
+			if ( $protect_from_public_access && ! is_user_logged_in() )
+				wp_die( '', '', [ 'response' => 403 ] );
+		}
+
+		if ( file_exists( $realpath ) ) {
+			$_mime = mime_content_type( $realpath );
+			$_inline_types = [
+				'application/pdf',
+				'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+				'text/plain',
+			];
+			$_disposition = in_array( $_mime, $_inline_types, true ) ? 'inline' : 'attachment';
+
+			header( 'Content-Type: ' . $_mime );
+			header( "Cache-Control: no-cache, must-revalidate" );
+			header( "Expires: 0" );
+			header( 'Content-Disposition: ' . $_disposition . '; filename="' . basename( $realpath ) . '"' );
+			header( 'Content-Length: ' . filesize( $realpath ) );
+			header( 'Pragma: public' );
 			ob_clean();
-
-			//Clear system output buffer
 			flush();
-
-			//Read the size of the file
-			readfile($filepath);
-
-			//Terminate from the script
+			readfile( $realpath );
 			die();
 		}
 	}
 }
-add_action( 'init', 'reserved_file_check', 10, 2);
+add_action( 'init', 'reserved_file_check', 10, 2 );
 
 // aggiungi data elements alla pagina note-legali
 function insert_data_attribute_note_legali( $content ) {
@@ -511,3 +523,150 @@ function custom_search_title($title) {
     return $title;
 }
 add_filter('document_title_parts', 'custom_search_title');
+
+
+function seleziona_termini_genitore($post_id) {
+    // Verifica se il salvataggio è automatico per evitare loop
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    // Verifica se l'utente ha i permessi per modificare il post
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    // Definisci le tassonomie per cui vuoi applicare questa logica
+    $tassonomie_da_controllare = ['amministrazione-trasparente']; // Sostituisci con la tua tassonomia
+
+	
+	foreach ($tassonomie_da_controllare as $tassonomia) {
+        $termini = wp_get_post_terms($post_id, $tassonomia, ['fields' => 'all']);
+        if (!empty($termini) && !is_wp_error($termini)) {
+            $termini_da_aggiungere = [];
+            foreach ($termini as $termine) {
+                $termini_da_aggiungere[] = $termine->term_id;
+
+                // Se il termine ha un genitore, aggiungilo all'array
+                if ($termine->parent != 0) {
+                    $termini_da_aggiungere[] = $termine->parent;
+                }
+            }
+			
+            // Rimuove i duplicati e assegna i termini al post
+            wp_set_post_terms($post_id, array_unique($termini_da_aggiungere), $tassonomia);
+        }
+    }
+}
+
+add_action('save_post', 'seleziona_termini_genitore');
+
+add_action( 'init', 'dsi_register_secure_download_rewrite' );
+function dsi_register_secure_download_rewrite() {
+    add_rewrite_rule(
+        '^dsi-download/([0-9]+)/([0-9]+)/?$',
+        'index.php?dsi_download_post=$matches[1]&dsi_download_file=$matches[2]',
+        'top'
+    );
+}
+
+/**
+ * Flush delle rewrite rules all'attivazione del tema e dopo un aggiornamento,
+ * così /dsi-download/{post_id}/{file_id}/ è subito raggiungibile senza dover
+ * salvare manualmente i permalink.
+ */
+add_action( 'after_switch_theme', 'dsi_flush_rewrite_on_activate' );
+function dsi_flush_rewrite_on_activate() {
+    dsi_register_secure_download_rewrite();
+    flush_rewrite_rules();
+}
+
+add_action( 'upgrader_process_complete', 'dsi_flush_rewrite_on_update', 10, 2 );
+function dsi_flush_rewrite_on_update( $upgrader, $options ) {
+    if (
+        isset( $options['type'], $options['action'] ) &&
+        $options['type']   === 'theme' &&
+        $options['action'] === 'update'
+    ) {
+        dsi_register_secure_download_rewrite();
+        flush_rewrite_rules();
+    }
+}
+
+add_filter( 'query_vars', 'dsi_secure_download_query_vars' );
+function dsi_secure_download_query_vars( $vars ) {
+    $vars[] = 'dsi_download_post';
+    $vars[] = 'dsi_download_file';
+    return $vars;
+}
+
+add_action( 'template_redirect', 'dsi_secure_download_handler' );
+function dsi_secure_download_handler() {
+    $post_id = get_query_var('dsi_download_post');
+    $file_id = get_query_var('dsi_download_file');
+
+    if ( ! $post_id || ! $file_id ) {
+        return;
+    }
+
+    $post_id = absint( $post_id );
+    $file_id = absint( $file_id );
+
+    // Verifica che il post sia una circolare
+    if ( get_post_type( $post_id ) !== 'circolare' ) {
+        wp_die( __('Risorsa non trovata.', 'design_scuole_italia'), 404 );
+    }
+
+    if ( circolare_access( $post_id ) === 'false' ) {
+        wp_die( __('Non hai i permessi per accedere a questo allegato.', 'design_scuole_italia'), 403 );
+    }
+
+    // Verifica che il file_id sia effettivamente allegato a questa circolare
+    $file_documenti = get_post_meta( $post_id, '_dsi_circolare_file_documenti', true );
+    if ( ! is_array( $file_documenti ) || ! array_key_exists( $file_id, $file_documenti ) ) {
+        wp_die( __('File non trovato.', 'design_scuole_italia'), 404 );
+    }
+
+    // Serve il file
+    $filepath = get_attached_file( $file_id );
+    if ( ! $filepath || ! file_exists( $filepath ) ) {
+        wp_die( __('File non trovato sul server.', 'design_scuole_italia'), 404 );
+    }
+
+    $mime     = mime_content_type( $filepath );
+    $filename = basename( $filepath );
+
+    // Tipi MIME che i browser sanno renderizzare inline (PDF, immagini, testo).
+    // Per qualsiasi altro tipo si forza il download via attachment.
+    $inline_types = [
+        'application/pdf',
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'image/svg+xml',
+        'text/plain',
+    ];
+    $disposition = in_array( $mime, $inline_types, true ) ? 'inline' : 'attachment';
+
+    header( 'Content-Type: ' . $mime );
+    header( 'Content-Disposition: ' . $disposition . '; filename="' . sanitize_file_name( $filename ) . '"' );
+    header( 'Content-Length: ' . filesize( $filepath ) );
+    header( 'Cache-Control: private, no-store, no-cache' );
+    header( 'Pragma: no-cache' );
+    header( 'X-Content-Type-Options: nosniff' );
+
+    readfile( $filepath );
+    exit();
+}
+
+/**
+ * Genera l'URL sicuro per il download di un allegato di una circolare.
+ *
+ * @param int $post_id   ID della circolare
+ * @param int $file_id   ID del file allegato (attachment)
+ * @return string        URL del proxy di download
+ */
+function dsi_get_secure_download_url( $post_id, $file_id ) {
+    return home_url( 'dsi-download/' . absint($post_id) . '/' . absint($file_id) . '/' );
+}

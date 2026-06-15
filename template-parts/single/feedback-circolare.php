@@ -26,8 +26,11 @@ if(is_user_logged_in()){
             ?>
             <div class="col-12">
             <?php
-            if(($require_feedback == "si_no_visione") || ($require_feedback == "si_no") ) {
+             if(($require_feedback == "si_no_visione") || ($require_feedback == "si_no")  || ($require_feedback == "presa_visione") ) {
+                echo "Invia una risposta alla circolare <br/><br/>";
+             }
 
+            if(($require_feedback == "si_no_visione") || ($require_feedback == "si_no") ) {
                 ?>
                 <a href="<?php echo wp_nonce_url(add_query_arg('sign', "si", get_permalink($post)), 'sign', 'dsi'); ?>" role="button" class="btn <?php
                 if($has_signed == "si") echo "btn-info"; else echo "btn-greendark"; echo $disabled; ?>">Si</a>

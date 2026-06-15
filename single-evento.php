@@ -32,7 +32,15 @@ $user_can_view_post = dsi_members_can_user_view_post(get_current_user_id(), $pos
 
 				<?php if (has_post_thumbnail($post)) { ?>
                     <section class="section bg-white article-title">
-                        <div class="title-img" style="background-image: url('<?php echo $image_url; ?>');"></div>
+                        <?php
+                        $attachment_id = get_post_thumbnail_id(); // Get the featured image ID
+                        $didascalia = wp_get_attachment_caption($attachment_id);
+                        $alt_text = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
+                        ?>
+                        <div class="title-img d-flex align-items-end" <?php if ($image_url) { ?>style="background-image: url('<?php echo $image_url; ?>');" <?php } ?><?php if ($alt_text) { ?> role="img"
+                                aria-label="<?php echo $alt_text ?>" <?php } ?>><?php if ($didascalia) { ?>
+                                <div class="w-100 p-4 bg-black text-white"><?php echo $didascalia; ?></div><?php } ?>
+                        </div>
                         <?php
                     } else { ?>
                         <section class="section bg-white article-title">
@@ -224,66 +232,32 @@ $user_can_view_post = dsi_members_can_user_view_post(get_current_user_id(), $pos
                                     <h2 class="h4"  id="art-par-date"><?php _e("Date e Orari", "design_scuole_italia"); ?></h2>
                                     <div class="calendar-vertical mb-5">
                                         <?php
-
                                         $old_data = "";
                                         foreach ($date as $data) {
-
+                                        $sr_date = "".date_i18n("d", $data["data"])." ".date_i18n("F", $data["data"]).""; 
                                             ?>
                                             <div class="calendar-date">
+                                                <?php if ($old_data != date_i18n("dMY", $data["data"])) { ?>
+                                                <h3 class="calendar-date-day order-1" aria-label="<?php echo $sr_date?>">
+                                                    <span aria-hidden="true"><?php echo date_i18n("d", $data["data"]); ?></span>
+                                                    <small aria-hidden="true"><b><?php echo date_i18n("M", $data["data"]); ?></b></small>
+                                                </h3>
+                                                <?php } else  { ?>
+                                                <div class="calendar-date-day order-1">
+                                                <!-- non mostrare la data quando è uguale alla precedente -->
+                                                </div><!-- /calendar-date-day -->
+                                                <?php } ?>
                                                 <div class="calendar-date-description rounded">
-                                                    <div class="calendar-date-description-content">
-                                                        <p><?php echo date_i18n("H:i", $data["data"]); ?><?php if (isset($data["descrizione"])) echo " - " . $data["descrizione"]; ?></p>
+                                                    <div class="calendar-date-description-content order-2">
+                                                        <p><strong><?php echo date_i18n("H:i", $data["data"]); ?></strong>
+                                                        <?php if (isset($data["descrizione"])) echo " - " . $data["descrizione"]; ?></p>
                                                     </div><!-- /calendar-date-description-content -->
                                                 </div><!-- /calendar-date-description -->
-                                                <h4 class="calendar-date-day">
-                                                    <?php if ($old_data != date_i18n("dMY", $data["data"])) { ?>
-                                                        <p><?php echo date_i18n("d", $data["data"]); ?></p>
-                                                        <small><b><?php echo date_i18n("M", $data["data"]); ?></b></small>
-
-                                                    <?php } ?>
-                                                </h4><!-- /calendar-date-day -->
+                                                
                                             </div><!-- /calendar-date -->
                                             <?php
                                             $old_data = date_i18n("dMY", $data["data"]);
-
-                                        }
-                                        /* else {
-
-                                            $timestamp_inizio = dsi_get_meta("timestamp_inizio");
-                                            $timestamp_fine = dsi_get_meta("timestamp_fine");
-                                            $ora_inizio = date_i18n("H:i", $timestamp_inizio);
-                                            $ora_fine = date_i18n("H:i", $timestamp_fine);
-
-                                        ?>
-                                        <div class="calendar-date">
-                                            <div class="calendar-date-day">
-                                                <small><?php echo date_i18n("Y", $timestamp_inizio); ?></small>
-                                                <p><?php echo date_i18n("d", $timestamp_inizio); ?></p>
-                                                <small><b><?php echo date_i18n("M", $timestamp_inizio); ?></b></small>
-
-                                            </div><!-- /calendar-date-day -->
-                                            <div class="calendar-date-description rounded">
-                                                <div class="calendar-date-description-content">
-                                                    <p><?php echo $ora_inizio; ?><?php if ($ora_fine != $ora_inizio) echo " - " . $ora_fine; ?></p>
-                                                </div><!-- /calendar-date-description-content -->
-                                            </div><!-- /calendar-date-description -->
-                                        </div><!-- /calendar-date -->
-
-                                            <div class="calendar-date">
-                                                <div class="calendar-date-day">
-                                                    <small><?php echo date_i18n("Y", $timestamp_fine); ?></small>
-                                                    <p><?php echo date_i18n("d", $timestamp_fine); ?></p>
-                                                    <small><b><?php echo date_i18n("M", $timestamp_fine); ?></b></small>
-
-                                                </div><!-- /calendar-date-day -->
-                                                <div class="calendar-date-description rounded">
-                                                    <div class="calendar-date-description-content">
-                                                        <p><?php echo $ora_inizio; ?><?php if ($ora_fine != $ora_inizio) echo " - " . $ora_fine; ?></p>
-                                                    </div><!-- /calendar-date-description-content -->
-                                                </div><!-- /calendar-date-description -->
-                                            </div><!-- /calendar-date -->
-                                        <?php
-                                        } */ ?>
+                                        }?>
 
                                     </div><!-- /calendar-vertical -->
                                     <?php

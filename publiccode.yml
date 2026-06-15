@@ -1,89 +1,61 @@
-# This repository adheres to the publiccode.yml standard by including this 
-# metadata file that makes public software easily discoverable.
-# More info at https://github.com/italia/publiccode.yml
-
-publiccodeYmlVersion: '0.2'
-categories:
-  - website-builder
-description:
-  it:
-    documentation: >-
-      https://github.com/italia/design-scuole-wordpress-theme/blob/master/README.md
-    features:
-      - Popolamento automatico dell'architettura del sito
-      - Gestione delle circolari con notifica e feedback utente
-      - Gestione delle strutture organizzative
-      - Gestione di schede progetto e schede didattiche
-      - Gestione dei luoghi della scuola
-      - Gestione degli eventi e del calendario scolastico
-      - Gestione di articoli e news
-      - Gestione degli indirizzi di studio
-    genericName: Tema Wordpress
-    localisedName: Design Scuole Italia 
-    longDescription: >
-      E' basato sul modello di siti per le scuole italiane, creato nell’ambito
-      del progetto **Designers Italia del Team per la Trasformazione Digitale
-      in seno alla  Presidenza del Consiglio dei Ministri**, in accordo
-      con il **MIUR**. Nel rispetto dell’autonomia scolastica e con l’obiettivo
-      di creare un prodotto in grado di rispondere ai principali bisogni di
-      tutte le scuole, lo abbiamo progettato dopo aver condotto decine di
-      workshop e migliaia di interviste con insegnanti, personale tecnico
-      amministrativo, genitori e studenti.
-
-
-      Questo sito permette di capire com’è organizzata la scuola, quali percorsi
-      di studio mette a disposizione e quali servizi di supporto alla didattica
-      sono disponibili per la comunità scolastica. Si pone l’obiettivo di
-      comunicare in modo chiaro e semplice l’identità di una scuola, riducendo
-      il peso della burocrazia (naturalmente nel rispetto degli obblighi), dando
-      spazio ai contenuti e alle persone e cercando di ricostruire anche on line
-      l’atmosfera che caratterizza la vita di una scuola.
-    screenshots:
-      - >-
-        https://raw.githubusercontent.com/italia/design-scuole-wordpress-theme/master/screenshot.png
-    shortDescription: >-
-        Design Scuole Italia è un tema WordPress per i siti delle Scuole Italiane. 
-developmentStatus: stable
-intendedAudience:
-  countries:
-    - it
-  scope:
-    - education
-usedBy:
-  - LICEO SCIENTIFICO - GIORGIO DAL PIAZ (istsc_blps020006)
-  - ISTITUTO SUPERIORE - T.CATULLO (istsc_blis01200t)
-  - ITT Panetti Pitagora (batf230001)
-it:
-  countryExtensionVersion: '0.2'
-  riuso:
-    codiceIPA: istsc_blps020006
-  conforme:
-    gdpr: false
-    lineeGuidaDesign: true
-    misureMinimeSicurezza: false
-    modelloInteroperabilita: false
-  piattaforme:
-    anpr: false
-    cie: false
-    pagopa: false
-    spid: false
-legal:
-  license: AGPL-3.0-or-later
-localisation:
-  availableLanguages:
-    - it
-  localisationReady: true
-maintenance:
-  contacts:
-    - email: marco.buttarini@gmail.com
-      name: Marco Buttarini
-  type: community
-name: Design Scuole Italia
+publiccodeYmlVersion: 0.5.0
+name: Design Scuole Italia (WordPress)
+applicationSuite: Modello Scuole di Designers Italia
+url: https://github.com/italia/design-scuole-wordpress-theme
+isBasedOn: https://github.com/italia/design-scuole-pagine-statiche
+softwareVersion: v1.12.5
+releaseDate: '2026-01-29'
 platforms:
   - web
-  - windows
-  - linux
-releaseDate: '2019-12-06'
-softwareType: addon
-softwareVersion: '1.0'
-url: 'https://github.com/italia/design-scuole-wordpress-theme'
+categories:
+  - it-development
+  - design
+  - content-management
+organisation:
+  uri: urn:x-italian-pa:pcm
+  name: Dipartimento per la trasformazione digitale
+roadmap: "https://github.com/orgs/italia/projects/16/views/1?filterQuery=repo%3Aitalia%2Fdesign-scuole-wordpress-theme"
+developmentStatus: stable
+softwareType: standalone/web
+intendedAudience:
+  countries:
+    - IT
+description:
+  it-IT:
+    shortDescription: Tema WordPress per realizzare e gestire siti web scolastici
+      basati sul Modello Scuole di Designers Italia.
+    longDescription: Il tema WordPress del Modello Scuole è una soluzione pronta
+      all'uso per il content management system (CMS) WordPress per realizzare e
+      gestire i siti web delle istituzioni scolastiche. Basato sul modello di
+      sito istituzionale delle scuole italiane di Designers Italia, consente di
+      adottare rapidamente una struttura informativa coerente e di gestire i
+      contenuti tramite il CMS WordPress. Il tema definisce automaticamente
+      l'organizzazione del sito, i layout delle pagine e la navigazione,
+      permettendo di concentrarsi sulla creazione e gestione dei contenuti.
+      Supporta inoltre diverse tipologie di contenuto, come servizi, circolari,
+      eventi e informazioni sull'organizzazione scolastica, facilitando la
+      pubblicazione e l'aggiornamento delle informazioni.
+    documentation: https://github.com/italia/design-scuole-wordpress-theme/blob/main/README.md
+    features:
+      - Tema WordPress pronto all'uso per i siti web delle scuole
+      - Permette di creare, aggiornare e organizzare i contenuti tramite CMS
+      - Struttura automaticamente navigazione e pagine sulla base del Modello
+        Scuole di Designers Italia
+      - Supporta tipologie di contenuto dedicate
+      - Consente la gestione dei contenuti da parte degli editor senza
+        interventi tecnici
+legal:
+  license: AGPL-3.0-only
+maintenance:
+  type: community
+  contacts:
+    - name: Designers Italia
+      email: contatti@designers.italia.it
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - it
+IT:
+  countryExtensionVersion: "1.0"
+  piattaforme:
+    anpr: false
